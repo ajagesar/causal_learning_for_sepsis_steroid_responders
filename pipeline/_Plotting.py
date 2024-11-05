@@ -89,8 +89,3 @@ class Mixin:
 
     logger.info('.create_plot() ran succesfully')
 
-        # visualize ites
-
-    # def show_roc_curve(self):
-    #     plt.figure(self.roc_curve)
-    #     plt.show()

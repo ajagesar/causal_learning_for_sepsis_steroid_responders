@@ -29,10 +29,6 @@ class Mixin:
             df_mimic = rename_df_mimic(df_mimic)
             preprocessed_data = df_mimic.copy()
 
-        # # imputation and normalizing -> separate script for only working with training data
-        # normalizing_model = fit_normalization_model(preprocessed_data)
-        # preprocessed_data = impute_median(inclusions=preprocessed_data) # TODO impute with normal value ?
-        # preprocessed_data, columns_to_scale = normalize_data(inclusions=preprocessed_data, normalizing_model=normalizing_model)
         
         preprocessed_data.to_csv(ROOT + f'\\saved_csvs\\{self.source}_preprocessed_data.csv', index=False)
 
@@ -336,21 +332,7 @@ def remove_outliers(inclusions): # TODO add
 
 def normal_value_imputation(inclusions):
     pass
-# def fit_normalization_model(inclusions):
-#     columns_to_scale = inclusions.drop(columns=['admissionid'])
-#     scaler = MinMaxScaler()
-#     scaler.fit(columns_to_scale)
 
-#     return scaler
-
-# def impute_median(inclusions):
-#     inclusions = inclusions.fillna(inclusions.median())
-#     return inclusions
-
-# def normalize_data(inclusions, normalizing_model):
-#     columns_to_scale = inclusions.drop(columns=['admissionid']).columns
-#     inclusions[columns_to_scale] = normalizing_model.transform(inclusions[columns_to_scale])
-#     return inclusions, columns_to_scale
 
 def load_mimic():
     # load data
@@ -511,6 +493,3 @@ def rename_df_mimic(df_mimic):
 
     return df_mimic
 
-
-
-# TODO unit conversion

@@ -19,14 +19,6 @@ class Mixin:
         random_state = self.random_state
         feature_selection_model = 'LogisticRegression'
 
-        # x_train_t = self.x_train_t.copy()
-        # x_train_c = self.x_train_c.copy()
-        # x_train = pd.concat([x_train_t, x_train_c])
-
-        # y_train_t = self.y_train_t.copy()
-        # y_train_c = self.y_train_c.copy()
-        # y_train = pd.concat([y_train_t, y_train_c])
-
         model_dict = {
         'LogisticRegression': LogisticRegression(penalty='l1', solver='saga', C=2, multi_class='multinomial', n_jobs=-1, random_state=self.random_state)
         , 'ExtraTreesClassifier': ExtraTreesClassifier(n_estimators=200, max_depth=3, min_samples_leaf=.06, n_jobs=-1, random_state=self.random_state)
@@ -100,22 +92,8 @@ class Mixin:
 
         # get list of most important feature combinations -> 17 according to plot
         self.ranked_features = rfecv_df['col'].to_list()
-       
-
-        #self.label_x_selected = rfecv_df['col'][0:13,].to_list()
-
-        
+              
         
 
         logger.info('.feature_selection ran succesfully')
-        # self.label_x = self.selected_features.copy()
-
-        # self.x_train_t = self.x_train_t[self.label_x]
-        # self.x_train_c = self.x_train_c[self.label_x]
-
-        # self.x_test_t = self.x_test_t[self.label_x]
-        # self.x_test_c = self.x_test_c[self.label_x]
-
-        # self.x_t = self.x_t[self.label_x]
-        # self.x_c = self.x_c[self.label_x]
 

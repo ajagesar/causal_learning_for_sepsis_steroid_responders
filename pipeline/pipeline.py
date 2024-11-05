@@ -148,8 +148,4 @@ class PipeLine(_Extraction.Mixin, _PreProcessing.Mixin, _FeatureSelection.Mixin,
         
     # def interpretation(self): -> _Interpretation
     
-
-
-# TODO make conversion between tensors and pandas df scalable
-# TODO split total, train and test set properly in code
     

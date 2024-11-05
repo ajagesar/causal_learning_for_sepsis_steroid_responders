@@ -13,7 +13,7 @@ from sklearn.metrics import roc_auc_score, brier_score_loss
 import logging
 logger = logging.getLogger('run')
 class Mixin:
-    def hyperparameter_tuning(self): # TODO ranking of number of features to take into account as hyperparameter
+    def hyperparameter_tuning(self):
 
         print("")
         print("using following for training:")
@@ -40,8 +40,6 @@ class Mixin:
                 number_of_features = trial.suggest_int('number_of_features', 3, 19)
 
                 self.label_x_selected = self.ranked_features[:number_of_features]
-
-                #TODO get feature selection in hyperparameter tuning
 
                 # get proper amount of features
                 x_tune_c = train_for_tuning.loc[train_for_tuning[self.label_t]==0][self.label_x_selected].copy()

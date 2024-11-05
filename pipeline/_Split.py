@@ -36,35 +36,7 @@ class Mixin:
             pickle.dump(train_ids, f)
         f.close()
 
-        # self.x_t_unscaled = data.loc[data[T]==1][X].copy() # mentioning unscaled for interpretation later
-        # self.x_c_unscaled = data.loc[data[T]==0][X].copy() # mentioning unscaled for interpretation later
-        # self.y_t = data.loc[data[T]==1][Y].copy()
-        # self.y_c = data.loc[data[T]==0][Y].copy()
 
-        # split the data in train/test and covariates/outcome based on treatment
-        #x_train_t, x_train_c, y_train_t, y_train_c, x_test_t, x_test_c, y_test_t, y_test_c = split_data(data, X=X, Y=Y, T=T, random_state=random_state)
-
-        # self.x_train_t = x_train_t
-        # self.x_train_c = x_train_c
-        # self.y_train_t = y_train_t
-        # self.y_train_c = y_train_c
-
-        # self.x_test_t = x_test_t
-        # self.x_test_c = x_test_c
-        # self.y_test_t = y_test_t
-        # self.y_test_c = y_test_c
-
-        # self.x_train = pd.concat([x_train_t, x_train_c])
-        # self.y_train = pd.concat([y_train_t, y_train_c])
-
-        # self.x_test = pd.concat([x_test_t, x_test_c])
-        # self.y_test = pd.concat([y_test_t, y_test_c])
-
-        # export data
-        #export_data(self.x_t_unscaled, self.x_c_unscaled, self.y_t, self.y_c, x_train_t, x_train_c, y_train_t, y_train_c, x_test_t, x_test_c, y_test_t, y_test_c)
-        #export_labels(X, Y, T)
-
-        #print("Preprocessed data has been split and saved as csvs. It is also attached as an attribute: .x_train_t, .x_train_c, .y_train_t, .y_train_c, .x_test_t, .x_test_c, .y_test_t, .y_test_c")
 
         logger.info('.split() ran succesfully')
 
@@ -92,28 +64,6 @@ def label_data(data):
     return X, Y, T
 
 
-
-
-# def split_data(data, X, Y, T, random_state):
-    
-#     # split in train and test set
-#     train = data.sample(frac=0.8, random_state=random_state)
-#     test = data.drop(train.index)
-
-#     # set x_t, x_c, y_t, y_c & x_test_t, x_test_c, y_test_t, y_test_c
-#     x_train_t = train.loc[train[T]==1][X].copy()
-#     x_train_c = train.loc[train[T]==0][X].copy()
-
-#     y_train_t = train.loc[train[T]==1][Y].copy()
-#     y_train_c = train.loc[train[T]==0][Y].copy()
-
-#     x_test_t = test.loc[test[T]==1][X].copy()
-#     x_test_c = test.loc[test[T]==0][X].copy()
-
-#     y_test_t = test.loc[test[T]==1][Y].copy()
-#     y_test_c = test.loc[test[T]==0][Y].copy()
-
-#     return x_train_t, x_train_c, y_train_t, y_train_c, x_test_t, x_test_c, y_test_t, y_test_c
 
 def export_data(x_t_unscaled, x_c_unscaled, y_t, y_c, x_train_t, x_train_c, y_train_t, y_train_c, x_test_t, x_test_c, y_test_t, y_test_c): # TODO change below to include mimic name with f-string (have to make it a method from the class to pass self)
     x_t_unscaled.to_csv(ROOT + "\\saved_csvs\\x_t_unscaled.csv")

@@ -26,30 +26,13 @@ from utils import ROOT, to_tensor, device
 import logging
 logger = logging.getLogger('run')
 
-# # settings
-# device = torch.device("mps")
 
-# # Check if device is MPS, otherwise set CPU
-# if str(device) != "mps":
-#     device = torch.device("cpu")
-#     print("Device is not MPS.")
-# else:
-#     print("Device is MPS.")
-
-# device = torch.device("cpu")
-
-# Set seed for reproducibility
 np.random.seed(42)
 
 
 
 class Mixin:
     def train_model(self):
-        # load_data
-        #data = pd.read_csv(ROOT +'\\saved_csvs\\preprocessed_data.csv', index_col=False)
-
-        # create labels for covariates (X), outcome (Y) and intervention (T)
-        #X, Y, T = label_data(data=data)
 
         # assign train df (use data without imputation for XGBoost model). special case for x-learner because it uses LogisticRegression for g
         if (self.metalearner_classifier == 'XGB') and (self.algorithm != 'x-learner'):
@@ -140,18 +123,7 @@ class Mixin:
 
         if self.algorithm == "tarnet-imacfr":
             NUM_CLASSES = 2
-            # Configurations
-            # # standard config:
-            # lr = 0.0001
-            # epochs = 6000
-            # hidden_dim = 32
-
-            # # hyperparameter tuning 27-3-2024 18:30
-            # lr = 0.00023661982058233684
-            # epochs = 3883
-            # hidden_dim = 8
-
-            # hyperparameter tuning v2 (28-3-2024), included feature selection
+    
             lr = 5.31782611449544e-06
             epochs = 11197
             hidden_dim = 108
@@ -531,11 +503,8 @@ def predictions(model, head_loss, m, x_test_t, x_test_c):
     print("Confusion Matrix - Total:")
     print(cm_total)
 
-    # TODO 1. AUC, 2. sigmoid in TARNet, 3. classification metrics van meta-learners, 4. externe validatie op AUMCDB/MIMIC-IV, 5. dan ITE en ATE (plotten volgens ordered ITE estimated) + 6. patient characteristics van beide uiteinden
 
-    # TODO save model and import in other script
-
-    return y_pred_test_t, y_pred_test_c # check datatype for pickling
+    return y_pred_test_t, y_pred_test_c 
 
 def export_model(model):
     with open(ROOT + '\\saved_csvs\\tarnet_model.pkl', 'wb') as f:

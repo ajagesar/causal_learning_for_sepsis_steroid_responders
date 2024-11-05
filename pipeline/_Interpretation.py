@@ -47,7 +47,7 @@ class Mixin:
         interpretation_df = interpretation_df.fillna(interpretation_df.median())
 
         # inverse transform scaling for interpretation
-        #interpretation_df[self.scaled_columns] = self.scaler.inverse_transform(interpretation_df[self.scaled_columns])
+
 
         self.responders = interpretation_df.loc[interpretation_df['ite'] <= -0.1] # 10% lower chance of mortality compared with control
         self.non_responders = interpretation_df.loc[(interpretation_df['ite'] > -0.1) & (interpretation_df['ite'] < 0.1)] 
@@ -55,7 +55,7 @@ class Mixin:
 
         self.ate = np.mean(interpretation_df['ite'])
 
-        # create graph that Louk showed
+        # create graph 
         ites_np = interpretation_df['ite'].to_numpy()
         self.visualise_ites(
             ites=ites_np,
@@ -166,26 +166,6 @@ class Mixin:
             'high': bootstrap_cis_high
         })
             
-        # variables = df.columns
-
-        # list_of_means = []
-
-        # for i in range(loops):
-        #     df_bootstrapped = df.sample(frac=1, replace=True, random_state=self.random_state)
-
-        #     df_bootstrapped_mean = df_bootstrapped.mean().to_list()
-
-        #     list_of_means.append(df_bootstrapped_mean)
-        
-        # df_bootstrapped_mean = pd.DataFrame(list_of_means, columns=variables)
-
-        # get CI
-
-
-        # get calculations
-        #df_bootstrapped
-
-        #df_bootstrapped_stats = None
 
         return df_cis
 

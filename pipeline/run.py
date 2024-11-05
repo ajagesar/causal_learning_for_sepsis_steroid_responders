@@ -416,7 +416,6 @@ x_learner_mlp_mimic.create_plot()
 x_learner_mlp_mimic.ite_estimation()
 x_learner_mlp_mimic.interpret()
 
-
 # Tarnet of aumcdb on mimic
 tarnet_aumcdb_on_mimic = evalpl.EvaluationPipeLine(
     name='tarnet_aumcdb_on_mimic',
