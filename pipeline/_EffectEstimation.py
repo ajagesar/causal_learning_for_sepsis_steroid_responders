@@ -2,6 +2,9 @@ from utils import ROOT, to_tensor
 from _Modeling import df_to_tensor, device
 import torch
 import numpy as np
+import pandas as pd
+import ot
+from sklearn.neighbors import NearestNeighbors
 
 import logging
 logger = logging.getLogger('run')
@@ -61,6 +64,24 @@ class Mixin:
 
             self.ite = data['ite'].to_numpy()
 
+            print("Calculating Wasserstein")
+
+            ## create df from latent representation #TODO fix below -> get Wasserstein; PM add regularization for TARNet -> CFR
+            latent_df_control = pd.DataFrame(self.model.phi_control.detach().numpy())
+            latent_df_treated = pd.DataFrame(self.model.phi_treated.detach().numpy())
+
+            # compute Wasserstein
+            self.wasserstein_before_matching = compute_wasserstein_ot(
+                arr1=data.loc[data[self.label_t]==0][self.label_x].to_numpy(),
+                arr2=data.loc[data[self.label_t]==1][self.label_x].to_numpy()
+                )
+
+            self.wasserstein_after_matching = compute_wasserstein_ot(
+                arr1=latent_df_control.to_numpy(),
+                arr2=latent_df_treated.to_numpy()
+            )
+
+
         if self.algorithm == "t-learner":
             # TODO fix with changed imputation code -> 2x imputing ?
 
@@ -94,8 +115,60 @@ class Mixin:
 
             self.ite = self.model.predict_proba(data_treatment_given[self.label_x_selected])[:,1] - self.model.predict_proba(data_treatment_not_given[self.label_x_selected])[:,1]
 
+        if self.algorithm == "psm":
+
+            propensity_scores = self.ps_model.predict_proba(data[self.label_x_selected])[:,1]
+            data['propensity_score'] = propensity_scores
+
+            # Split into treated and control groups
+            treated = data[data[self.label_t]==1].copy()
+            control = data[data[self.label_t]==0].copy()
+
+            # Nearest neighbor matching (1:1) to match based on propensity scores
+            nn = NearestNeighbors(n_neighbors=1)
+            nn.fit(control[['propensity_score']])
+            distances, indices = nn.kneighbors(treated[['propensity_score']])
+
+            matched_control = control.iloc[indices.flatten()].reset_index(drop=True)
+            treated = treated.reset_index(drop=True)
+            matched_data = pd.concat([treated, matched_control])
+
+            self.ite = self.m1.predict_proba(treated[self.label_x_selected])[:,1] - self.m0.predict_proba(matched_control[self.label_x_selected])[:,1]
+
+            # compute Wasserstein
+            print("Calculating Wasserstein")
+
+            self.wasserstein_before_matching = compute_wasserstein_ot(
+                arr1=data.loc[data[self.label_t]==0][self.label_x].to_numpy(),
+                arr2=data.loc[data[self.label_t]==1][self.label_x].to_numpy()
+            )
+
+            self.wasserstein_after_matching = compute_wasserstein_ot(
+                arr1=treated[self.label_x].to_numpy(),
+                arr2=matched_control[self.label_x].to_numpy()
+            )
+
         logger.info('.ite_estimation() ran succesfully')
+
+        if (self.wasserstein_before_matching != None) & (self.wasserstein_after_matching != None):
+
+            with open(ROOT + f"\\paper\\output\\{self.name}_wasserstein.txt", "w") as file:
+                print(f"Wasserstein before modeling: {self.wasserstein_before_matching}", file=file)
+                print(f"Wasserstein after modeling: {self.wasserstein_after_matching}", file=file)
 
     def ps_predict(self, df, t):
         return self.g.predict_proba(df[self.label_x_selected])[:, t]
     
+def compute_wasserstein_ot(arr1, arr2):
+
+    # Uniform weights for samples -> makes each sample equally important
+    a = np.ones(arr1.shape[0]) / arr1.shape[0]
+    b = np.ones(arr2.shape[0]) / arr2.shape[0]
+
+    # Cost matrix (e.g., Euclidean distance between samples)
+    m = ot.dist(arr1, arr2)
+
+    # Wasserstein distance using optimal transport
+    emd_distance = ot.emd2(a, b, m, numItermax=1000000)
+
+    return emd_distance

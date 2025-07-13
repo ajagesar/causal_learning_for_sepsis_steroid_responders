@@ -13,6 +13,7 @@ import torch.nn as nn
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import NearestNeighbors
 import xgboost as xgb
 from src.TARNetCodeBase.metrics import pehe_eval
 from src.TARNetCodeBase.empirical_data import ihdp_loader
@@ -20,6 +21,7 @@ from src.TARNetCodeBase.doubly_robust import doubly_robust
 from src.TARNetCodeBase.TARNet import TARnetICFR
 from src.TARNetCodeBase.IMAFCRNet import IMAFCRNet
 from src.TARNetCodeBase.TARnetIMA_CFRClassifier import TARnetIMA_CFRClassifier
+
 
 from utils import ROOT, to_tensor, device
 
@@ -255,6 +257,55 @@ class Mixin:
             # attribute to model
             self.m0 = m0
             self.m1 = m1
+
+        if self.algorithm == "psm":
+
+             # Step 1: Fit propensity score model
+            x_train = train[self.label_x_selected].copy()
+            t_train = train[self.label_t].copy()
+
+            ps_model = LogisticRegression(C=1e6).fit(x_train, t_train)
+
+            # save model
+            with open(ROOT + f"\\saved_models\\{self.source}_{self.algorithm}_propensity_score_model.pkl", "wb") as f:
+                pickle.dump(ps_model, f)
+
+            propensity_scores = ps_model.predict_proba(x_train)[:,1]
+
+            # store as attribute
+            self.ps_model = ps_model
+
+            train_ps = train.copy()
+            train_ps['propensity_score'] = propensity_scores
+
+            # Step 2: Split into treated and control groups
+            treated = train_ps[train_ps[self.label_t]==1]
+            control = train_ps[train_ps[self.label_t]==0]
+
+            # Step 3: Nearest neighbor matching (1:1) to match based on propensity scores
+            nearn = NearestNeighbors(n_neighbors=1)
+            nearn.fit(control[['propensity_score']])
+            distances, indices = nearn.kneighbors(treated[['propensity_score']])
+
+            matched_control = control.iloc[indices.flatten()].reset_index(drop=True)
+            treated = treated.reset_index(drop=True)
+
+            # Step 4: Compute ITEs with two models that estimate ites
+            m0, m1 = self.init_clf_for_metalearner() # code below
+
+            m0.fit(matched_control[self.label_x_selected], matched_control[self.label_y])
+            m1.fit(treated[self.label_x_selected], treated[self.label_y])
+
+            self.m0 = m0
+            self.m1 = m1
+
+            with open(ROOT + f'\\saved_models\\{self.source}_{self.algorithm}_m0_model.pkl', 'wb') as f:
+                pickle.dump(m0, f)
+            f.close()
+
+            with open(ROOT + f'\\saved_models\\{self.source}_{self.algorithm}_m1_model.pkl', 'wb') as f:
+                pickle.dump(m1, f)
+            f.close()
 
         if self.metalearner_classifier is not None:
 
